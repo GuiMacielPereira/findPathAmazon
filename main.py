@@ -7,10 +7,10 @@ def main():
 
     startP = [0, 0]
     endP = [9, 9]
-    obstacles = [[9, 7], [8, 7], [6, 7], [6, 8], [7, 7], [7, 8]]
+    obstacles = [[9, 7], [8, 7], [6, 7], [6, 8], [7, 7], [7, 8], [3, 3]]
 
     # Option to include random points
-    randomObstacles = True
+    randomObstacles = False
     if randomObstacles:
         noRandPoints = 10
         obstacles = np.random.randint(0, 10, (noRandPoints, 2)).tolist()
@@ -61,9 +61,10 @@ def findPath(grid, startP, endP):
             freePoints = removeDuplicates(freePoints)
             #removeIsolatedPoints(freePoints)
             
-            assert currP in freePoints, "Current point not in free points of cluster!"
+      
+            enterP = currP if currP in freePoints else getEnterPoint(currP, freePoints)
 
-            exitP = calcExitP(currP, freePoints, endP)
+            exitP = calcExitP(enterP, freePoints, endP)
 
             getPathPoint(currP, exitP, freePoints, pathPoints)
 
@@ -74,6 +75,13 @@ def findPath(grid, startP, endP):
             currP = nxtP
     
     return pathPoints
+
+def getEnterPoint(currP, freePoints):
+    for fp in freePoints:
+        d = dist(currP, fp)
+        if (d==1) or (d==np.sqrt(2)):
+            return fp
+    raise ValueError ("Enter point not found!")
 
 
 def dist(p1, p2):
