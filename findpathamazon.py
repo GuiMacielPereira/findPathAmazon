@@ -70,46 +70,59 @@ def findPath(grid:np.ndarray, startP:list, endP:list):
 
 
 def dist(p1, p2):
+    """Distance between two grid points"""
     return np.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
 
 
 def checkObs(grid, pCheck, pIgnore, freePoints):
+    """
+    Called recursively. 
+    Finds cluster of obstacles adjacent to initial obstacle point.
+    Keeps track of free paths around the cluster.
+    """
+
     x, y = pCheck
     obsPoints = []
 
-    for (nx, ny) in [(x, y+1), (x, y-1), (x+1, y), (x-1, y)]:
+    for (nx, ny) in [(x, y+1), (x, y-1), (x+1, y), (x-1, y)]:  # Checks adjacent points in cross shape
 
-        if [nx, ny] in pIgnore:
+        if [nx, ny] in pIgnore:    # Points that were already checked get ignored
             continue
         if grid[nx, ny] == 0:
-            freePoints.append([nx, ny])
-        elif grid[nx, ny] == 1:
-            obsPoints.append([nx, ny])
-        else:
+            freePoints.append([nx, ny])    # Store free point to be added to free path
+        elif grid[nx, ny] == 1: 
+            obsPoints.append([nx, ny])     # Store obstacle
+        else: 
             raise ValueError("Grid point must be either 0 or 1.")
     
-    pIgnore.append(pCheck)
+    pIgnore.append(pCheck)     # Ignore current center point
 
     for obsP in obsPoints:
-        checkObs(grid, obsP, pIgnore, freePoints)
+        checkObs(grid, obsP, pIgnore, freePoints)   # Check all obstacle points found for more adjacent obstacles
+    
+    # Procedure ends when there are no more adjacent obstacles to be found
     return
 
 
-def getPathPoint(currP, pEnd, freePoints, pathPoints):
+def getPathPoint(currP, exitP, freePoints, pathPoints):
+    """
+    Called recursively.
+    Stores a path on pathPoints from a given list of freePoints, starting at currP and ending at pEnd
+    """
 
-    pathPoints.append(currP)
+    pathPoints.append(currP)   # Each call appends point to path
 
-    if currP == pEnd:
+    if currP == exitP:     # End recursive calling when reaching exit point
         return
 
     for fp in freePoints:
         d = dist(currP, fp)
 
-        if ((d==1) or (d==np.sqrt(2))) and (fp not in pathPoints):
+        if ((d==1) or (d==np.sqrt(2))) and (fp not in pathPoints):  # Next point found is either adjacent or in diagonal
             nxtP = fp
             break
     
-    getPathPoint(nxtP, pEnd, freePoints, pathPoints)
+    getPathPoint(nxtP, exitP, freePoints, pathPoints)    # Repeat procedure for next point
     return
 
 
@@ -129,7 +142,7 @@ def calcExitP(freePoints, endP):
     for fp in freePoints:
         curr = dist(fp, endP)
 
-        if curr < closest:
+        if curr < closest:   # Stores minimum closest thus far
             closest = curr
             bestP = fp
 
@@ -137,10 +150,15 @@ def calcExitP(freePoints, endP):
 
 
 def calcNextPoint(currP, endP):
+    """
+    Default way of predicting next point.
+    Next point is whichever point gets closer to the end goal.
+    """
 
     res = [0, 0]
-    for i, (currCoor, endCoor) in enumerate(zip(currP, endP)):
+    for i, (currCoor, endCoor) in enumerate(zip(currP, endP)):   # Loop over x, y coordinates
 
+        # Update each coordinate by comparing it with corresponding end point coordinate
         if currCoor == endCoor:
             res[i] = currCoor
         elif currCoor > endCoor:
@@ -159,7 +177,7 @@ def calcNextPoint(currP, endP):
 startP = [0, 0]
 endP = [9, 9]
 obstacles = [[9, 7], [8, 7], [6, 7], [6, 8], [7, 7], [7, 8], [5, 5], [5, 4], [4, 4],
-              [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [6, 7], [6, 6], [4, 5]]
+              [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [6, 7], [6, 6]]
 
 # Option to overwrite obstacles with random points
 randomObstacles = False
